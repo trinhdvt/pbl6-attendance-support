@@ -1,0 +1,10 @@
+requests
+Flask
+flask_cors
+PyYAML
+numpy
+Pillow
+imutils
+opencv-python-headless
+dlib
+face_recognition
