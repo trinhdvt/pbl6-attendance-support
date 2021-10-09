@@ -1,8 +1,9 @@
 FROM python:3.9-alpine
 
-RUN apk update && apk add build-base cmake pkgconfig
+RUN apk update && apk add build-base cmake pkgconfig jpeg-dev zlib-dev python-dev
+ENV LIBRARY_PATH=/lib:/usr/lib
 
-RUN pip3 install --upgrade pip
+RUN python3 -m pip install --upgrade pip setuptools wheel
 
 WORKDIR /app
 
