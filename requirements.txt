@@ -5,6 +5,6 @@ PyYAML
 numpy
 Pillow
 imutils
-opencv-python-headless
+opencv-python-headless<4.3
 dlib
 face_recognition
