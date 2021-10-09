@@ -1,7 +1,4 @@
-FROM python:3.9-alpine
-
-RUN apk update && apk add build-base cmake pkgconfig jpeg-dev zlib-dev python-dev
-ENV LIBRARY_PATH=/lib:/usr/lib
+FROM animcogn/face_recognition:cpu-latest
 
 RUN python3 -m pip install --upgrade pip setuptools wheel
 
