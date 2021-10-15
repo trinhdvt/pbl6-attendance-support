@@ -4,8 +4,11 @@ from loader import load_model
 import os
 import time
 import numpy as np
+import io
+from PIL import Image
 
-face_compare = load_model()
+face_compare, card_detector = load_model()
+
 app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_EXTENSIONS'] = ['jpg', 'jpeg', 'png']
@@ -48,6 +51,23 @@ def run_for_my_life():
     }), 200
 
 
+@app.route("/api/shi3", methods=['POST'])
+def run_for_your_life():
+    #
+    if 'card-img' not in request.files:
+        resp = {"message": "Missing parameters"}
+        return make_response(jsonify(resp), 400)
+
+    #
+    img_file = request.files['card-img']
+    img_bytes = img_file.read()
+    img = Image.open(io.BytesIO(img_bytes))
+
+    #
+    results = card_detector.predict(img)
+    return jsonify(results), 200
+
+
 def allowed_file(filenames):
     return all(["." in filename and
                 filename.rsplit(".", 1)[1].lower() in app.config['UPLOAD_EXTENSIONS']
@@ -57,4 +77,4 @@ def allowed_file(filenames):
 if __name__ == '__main__':
     port = 8080
     print(f"Server is listening on port {port}")
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=True, host='127.0.0.1', port=port)
