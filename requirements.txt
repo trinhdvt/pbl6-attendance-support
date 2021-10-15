@@ -4,6 +4,7 @@ flask_cors
 PyYAML
 numpy
 Pillow
+opencv-python-headless
 imutils
 matplotlib
 gdown
