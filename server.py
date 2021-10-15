@@ -77,4 +77,4 @@ def allowed_file(filenames):
 if __name__ == '__main__':
     port = 8080
     print(f"Server is listening on port {port}")
-    app.run(debug=True, host='127.0.0.1', port=port)
+    app.run(debug=True, host='0.0.0.0', port=port)
