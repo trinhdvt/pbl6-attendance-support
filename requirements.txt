@@ -5,4 +5,7 @@ PyYAML
 numpy
 Pillow
 imutils
-opencv-python-headless
+matplotlib
+gdown
+seaborn
+gunicorn
