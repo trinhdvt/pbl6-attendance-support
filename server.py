@@ -6,8 +6,9 @@ import time
 import numpy as np
 import io
 from PIL import Image
+from src.utils import image_utils
 
-face_compare, card_detector = load_model()
+face_compare, card_detector, card_reader = load_model()
 
 app = Flask(__name__)
 CORS(app)
@@ -51,7 +52,7 @@ def run_for_my_life():
     }), 200
 
 
-@app.route("/api/shi3", methods=['POST'])
+@app.route("/api/card_recognize", methods=['POST'])
 def run_for_your_life():
     #
     if 'card-img' not in request.files:
@@ -64,8 +65,26 @@ def run_for_your_life():
     img = Image.open(io.BytesIO(img_bytes))
 
     #
-    results = card_detector.predict(img)
+    # results = card_detector.predict(img)
+    results = extract_info(img)
     return jsonify(results), 200
+
+
+def extract_info(card_img):
+    extracted_rs = card_detector.detect_crop(card_img, save_crop=False, verbose=True)
+    #
+    for label, img_list in extracted_rs.items():
+        img = image_utils.concat_image(img_list)
+        extracted_rs[label] = img
+
+    #
+    reader_rs = card_reader.batch_predict(extracted_rs.values(), show_time=True)
+
+    #
+    for idx, label in enumerate(extracted_rs.keys()):
+        extracted_rs[label] = reader_rs[idx]
+
+    return extracted_rs
 
 
 def allowed_file(filenames):
