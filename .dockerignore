@@ -157,4 +157,4 @@ cython_debug/
 /image/
 /detector/
 /cropper/
-/test.py
+/test/

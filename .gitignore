@@ -363,3 +363,9 @@ cython_debug/
 /image/
 /cropper/
 /detector/
+/.idea/
+/resources/yolov5_300.pt
+/test/
+/test/test.py
+/runs/
+/resources/reader_transformer.pth
