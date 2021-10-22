@@ -1,5 +1,5 @@
 from src.face_comparator import FaceComparator
-from src.card_recognition import Detector
+from src.card_recognition import Detector, Reader
 from src.utils.google_utils import download_model
 import os
 
@@ -22,6 +22,11 @@ Cfg = {
         'detector': {
             'weight': f"{ROOT_PATH}/resources/yolov5_300.pt",
             'drive-id': "1S2-Dq-6OTikXznkMkTE6M4aa-LYoTz2A"
+        },
+        "reader": {
+            'cfg': f"{ROOT_PATH}/resources/reader_cfg.yml",
+            "weight": f"{ROOT_PATH}/resources/reader_transformer.pth",
+            "drive-id": "1vVpXlkkpwl0Ac-Ht_C464ENd8SHP1WIs"
         }
     }
 }
@@ -39,7 +44,10 @@ def load_model():
 
     card_detector = Detector(weight_path=Cfg['card']['detector']['weight'])
 
-    return face_comparator, card_detector
+    card_reader = Reader(cfg_path=Cfg['card']['reader']['cfg'],
+                         weight_path=Cfg['card']['reader']['weight'])
+
+    return face_comparator, card_detector, card_reader
 
 
 def model_check():
