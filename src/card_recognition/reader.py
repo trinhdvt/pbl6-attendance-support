@@ -34,7 +34,7 @@ class Reader:
                              self.config['dataset']['image_min_width'],
                              self.config['dataset']['image_max_width'])
 
-    def predict(self, image, show_time=False) -> str:
+    def predict(self, image, show_time=False):
         """
         Transformer single predict
 
@@ -59,7 +59,7 @@ class Reader:
             print(f'Predicted in {time.time() - start}')
         return sequence
 
-    def batch_predict(self, images, show_time=False) -> list[str]:
+    def batch_predict(self, images, show_time=False):
         """
         Transformer batch predict
 
