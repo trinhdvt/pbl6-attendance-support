@@ -12,5 +12,5 @@ RUN pip3 install torch==1.9.1+cpu torchvision==0.10.1+cpu torchaudio==0.9.1 -f h
 
 COPY . .
 
-#CMD ["gunicorn", "--bind","0.0.0.0:8080", "server:app"]
-CMD ["python3","server.py"]
+CMD ["gunicorn", "--bind","0.0.0.0:8080", "server:app"]
+#CMD ["python3","server.py"]
