@@ -22,7 +22,4 @@ docker-build:
     - docker push "$CI_REGISTRY_IMAGE${tag}"
   # Run this job in a branch where a Dockerfile exists
   rules:
-    - if: $CI_COMMIT_BRANCH
-      exists:
-        - Dockerfile
     - when: manual
