@@ -2,6 +2,7 @@ import face_recognition as fr
 from .face_alignment import FaceAlignment
 from .face_detector import FaceDetector
 from .face_embedding import FaceEmbedding
+import numpy as np
 
 
 class FaceComparator:
@@ -15,23 +16,25 @@ class FaceComparator:
 
         self.face_embedding = FaceEmbedding(weight_path=embedding_weight)
 
-    def predict(self, image_paths):
+    def predict(self, images):
         """
         Compare face function
 
-        :param image_paths: Paths of all images
+        :param images: List of cv2-image
         :return: A tuple of True/False which indicates that two face is the same and distance between them
         """
 
         # detect face
-        annotated_img, cropped_face = self.face_detector.batch_detect(image_paths)
+        annotated_img, cropped_face = self.face_detector.batch_detect(images)
 
         # align face
         for i in range(len(cropped_face)):
             cropped_face[i] = self.face_alignment.align(cropped_face[i])
 
         #
-        return self._compare(cropped_face)
+        is_match, distance = self._compare(cropped_face)
+
+        return np.array(is_match, dtype=bool).tolist()[0], distance.tolist()[0]
 
     def _compare(self, face_images):
         # encoding face
