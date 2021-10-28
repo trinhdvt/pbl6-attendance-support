@@ -19,19 +19,16 @@ class FaceDetector:
 
         return blobs
 
-    def batch_detect(self, img_paths):
+    def batch_detect(self, images):
         """
         Detect faces in all input images.
 
-        :param img_paths: Paths of all images
+        :param images: List of cv2-image
         :return: (original image with rectangle drawn on it, cropped face from original image)
         """
 
-        # read image into a list
-        images = []
+        #
         target_size = (300, 300)
-        for path in img_paths:
-            images.append(cv2.imread(path))
 
         # convert to blob image
         blob_images = self._batch_blob(images, size=target_size, mean=(104.0, 177.0, 123.0))
