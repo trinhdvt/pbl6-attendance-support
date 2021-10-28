@@ -11,3 +11,4 @@ vietocr
 gdown
 seaborn
 gunicorn
+loguru
