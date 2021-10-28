@@ -1,4 +1,6 @@
 from PIL import Image
+import cv2
+import numpy as np
 
 
 def concat_image(images, gap=0):
@@ -26,3 +28,11 @@ def concat_image(images, gap=0):
         x_offset += im.size[0] + gap
 
     return new_im
+
+
+def pil_to_cv2(img):
+    return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+
+def cv2_to_pil(img):
+    return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
