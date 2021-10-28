@@ -1,6 +1,8 @@
 from src.face_comparator import FaceComparator
-from src.card_recognition import Detector, Reader
+from src.card_recognition import Detector, Reader, Cropper
 from src.utils.google_utils import download_model
+from loguru import logger
+
 import os
 
 ROOT_PATH = os.path.dirname(__file__)
@@ -47,11 +49,13 @@ def load_model():
     card_reader = Reader(cfg_path=Cfg['card']['reader']['cfg'],
                          weight_path=Cfg['card']['reader']['weight'])
 
-    return face_comparator, card_detector, card_reader
+    card_cropper = Cropper()
+
+    return face_comparator, card_detector, card_reader, card_cropper
 
 
 def model_check():
-    print("Begin model check")
+    logger.info("Begin model check")
 
     for keys in Cfg.values():
         for model in keys.values():
@@ -64,4 +68,4 @@ def model_check():
                     drive_id = model['drive-id']
                     download_model(drive_id, weight_path)
 
-    print("Model check done!")
+    logger.info("Model check done!")

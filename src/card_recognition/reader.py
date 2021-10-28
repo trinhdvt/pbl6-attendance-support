@@ -2,9 +2,10 @@ from collections import defaultdict
 
 import torch
 import yaml
+import time
 
 from vietocr.tool.translate import build_model, translate, process_input
-import time
+from loguru import logger
 
 
 class Reader:
@@ -56,7 +57,7 @@ class Reader:
 
         #
         if show_time:
-            print(f'Predicted in {time.time() - start}')
+            logger.debug(f'Predicted in {time.time() - start}')
         return sequence
 
     def batch_predict(self, images, show_time=False):
@@ -100,7 +101,7 @@ class Reader:
 
         #
         if show_time:
-            print(f'Predicted in {time.time() - start}')
+            logger.debug(f'Predicted in {time.time() - start}')
 
         #
         return results_seq

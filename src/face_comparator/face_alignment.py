@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from loguru import logger
 from PIL import Image
 
 
@@ -61,7 +62,7 @@ class FaceAlignment:
 
             return new_img
         else:
-            print("Not thing to align! Return the origin")
+            logger.debug("Not thing to align! Return the origin")
             return img
 
     @staticmethod
