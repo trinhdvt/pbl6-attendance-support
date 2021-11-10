@@ -11,13 +11,15 @@ Cfg = {
     'face': {
         'detector': {
             'cfg': f"{ROOT_PATH}/resources/res10_300x300.txt",
-            'weight': f"{ROOT_PATH}/resources/res10_300x300.caffemodel"
+            'weight': f"{ROOT_PATH}/resources/res10_300x300.caffemodel",
+            'drive-id': '1GuuaMWwqtzbGQBEYSr4xkJadQd93HAXh'
         },
         'alignment': {
             'cfg': f"{ROOT_PATH}/resources/haarcascade_eye.xml"
         },
         'embedding': {
-            'weight': f"{ROOT_PATH}/resources/nn4.small2.v1.t7"
+            'weight': f"{ROOT_PATH}/resources/nn4.small2.v1.t7",
+            'drive-id': "1JQuYjM-sep1ptf_xa9VMoyAyrQHbCEl0"
         }
     },
     'card': {
