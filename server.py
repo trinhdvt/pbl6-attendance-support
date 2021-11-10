@@ -1,6 +1,6 @@
-import io
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 from PIL import Image
 from flask import Flask, jsonify, request, make_response
@@ -9,6 +9,7 @@ from loguru import logger
 
 from loader import load_model
 from src.utils.image_utils import cv2_to_pil, pil_to_cv2
+from src.utils.flask_utils import submit_results, save_log_img
 
 face_compare, card_detector, card_reader, card_cropper = load_model()
 
@@ -75,23 +76,21 @@ def run_for_your_life():
 
     # read parameters from request
     img_file = request.files['card-img']
-    origin_img = Image.open(io.BytesIO(img_file.read()))
+    [origin_img] = read_request_file([img_file], cvt_fn=pil_to_cv2)
 
-    # crop image if we need
+    # crop image if need
     is_cropped = request.form.get("cropped")
-    if is_cropped is False:
-        card_img = crop_card(origin_img)
+    if not is_cropped:
+        card_img = crop_card(origin_img, to_cv2=False)
     else:
         card_img = origin_img
 
     # convert to PIL Image
-    card_img = cv2_to_pil(card_img)
-
     # extract info
-    results = extract_info(card_img)
+    extracted_rs = extract_info(*list(map(cv2_to_pil, [card_img, origin_img])))
 
     #
-    return jsonify(results), 200
+    return jsonify(extracted_rs), 200
 
 
 @app.route("/api/check", methods=['POST'])
@@ -102,9 +101,12 @@ def run_for_our_life():
     :return: Face compare result and extracted information
     """
 
+    start = time.time()
+    exam_code = request.form.get("examCode", type=str)
     # request parameters check
     if 'face-img' not in request.files \
-            or 'card-img' not in request.files:
+            or 'card-img' not in request.files \
+            or not exam_code:
         resp = {"message": "Missing parameters"}
         return make_response(jsonify(resp), 400)
     #
@@ -120,16 +122,46 @@ def run_for_our_life():
     # crop card
     cropped_card = crop_card(card_img, to_cv2=False)
 
-    # face compare
-    compare_rs = compare_faces(face_img, cropped_card, card_img)
+    # execute in 2-thread
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        thread_1 = executor.submit(compare_faces, face_img, cropped_card, card_img)
+        thread_2 = executor.submit(extract_info, *list(map(cv2_to_pil, [cropped_card, card_img])))
 
-    # card recognize
-    extracted_rs = extract_info(*list(map(cv2_to_pil, [cropped_card, card_img])))
+        compare_rs = thread_1.result()
+        extracted_rs = thread_2.result()
 
     # combine results and return
     extracted_rs.update(compare_rs)
     logger.debug(f"Request ({face_img_file.filename},{card_img_file.filename}) done with {extracted_rs}!")
 
+    #
+    end = time.time()
+    extracted_rs.update({
+        "request-time": end - start
+    })
+
+    # prepare data to save to disk
+    file_name_to_save = [face_img_file.filename, card_img_file.filename, "crop_" + card_img_file.filename]
+    file_name_to_save = list(map(lambda f: f"{int(start)}_{f}", file_name_to_save))
+    img_to_save = [face_img, card_img, cropped_card]
+
+    # prepare data to send to backend server
+    file_prefix = "https://admin.illusion.codes/images"
+    extracted_rs.update({
+        "examCode": exam_code,
+        "ipAddress": request.remote_addr,
+        "userAgent": request.user_agent.browser,
+        "faceImg": file_prefix + "/" + file_name_to_save[0],
+        "cardImg": file_prefix + "/" + file_name_to_save[1],
+        "cropCard": file_prefix + "/" + file_name_to_save[2],
+    })
+
+    # save log and submit results
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        executor.submit(save_log_img, img_to_save, file_name_to_save, app.config['LOG_DIR'])
+        executor.submit(submit_results, extracted_rs)
+
+    #
     return jsonify(extracted_rs), 200
 
 
@@ -249,7 +281,7 @@ def read_request_file(img_files, cvt_fn=None):
 
     img_arr = []
     for img_file in img_files:
-        img = Image.open(io.BytesIO(img_file.read()))
+        img = Image.open(img_file).convert('RGB')
         if cvt_fn is not None:
             img = cvt_fn(img)
         img_arr.append(img)

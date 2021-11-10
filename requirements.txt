@@ -7,8 +7,8 @@ Pillow
 opencv-python-headless
 imutils
 matplotlib
-vietocr
 gdown
+vietocr
 seaborn
 gunicorn
 loguru

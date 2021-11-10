@@ -1,8 +1,10 @@
 import face_recognition as fr
+import numpy as np
+import os
+
 from .face_alignment import FaceAlignment
 from .face_detector import FaceDetector
 from .face_embedding import FaceEmbedding
-import numpy as np
 
 
 class FaceComparator:
@@ -15,6 +17,10 @@ class FaceComparator:
         self.face_alignment = FaceAlignment(cfg_path=alignment_cfg)
 
         self.face_embedding = FaceEmbedding(weight_path=embedding_weight)
+
+        self.threshold = os.getenv("FACE_THRESH", default=0.6)
+        if type(self.threshold) != float:
+            self.threshold = float(self.threshold)
 
     def predict(self, images):
         """
@@ -51,6 +57,6 @@ class FaceComparator:
         distance = fr.face_distance([embedding[0]], embedding[1])
 
         # if distance < 0.6 then it's match otherwise no
-        is_match = fr.compare_faces([embedding[0]], embedding[1])
+        is_match = fr.compare_faces([embedding[0]], embedding[1], tolerance=self.threshold)
 
         return is_match, distance

@@ -64,7 +64,7 @@ class FaceDetector:
             cropped_face.append(np.copy(face))
 
             # draw result
-            cv2.rectangle(images[img_idx], (start_x, start_y), (end_x, end_y), (0, 0, 255), 2)
-            cv2.putText(images[img_idx], label, (start_x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+            # cv2.rectangle(images[img_idx], (start_x, start_y), (end_x, end_y), (0, 0, 255), 2)
+            # cv2.putText(images[img_idx], label, (start_x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
         return images, cropped_face

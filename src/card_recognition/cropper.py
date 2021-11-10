@@ -21,11 +21,15 @@ class Cropper:
         #
         gray_img = cv2.cvtColor(blurred_img, cv2.COLOR_BGR2GRAY)
 
+        # equal_histogram = cv2.equalizeHist(gray_img)
         # _, thresh = cv2.threshold(gray_img, 0, 255, cv2.THRESH_OTSU)
-        thresh = cv2.Canny(gray_img, 100, 10)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-        thresh = cv2.dilate(thresh, kernel, iterations=1)
 
+        # detect edge with canny
+        thresh = cv2.Canny(gray_img, 20, 100)
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+        # thresh = cv2.dilate(thresh, kernel, iterations=2)
         return thresh
 
     @staticmethod
@@ -34,7 +38,7 @@ class Cropper:
 
         # sky-blue color
         # lower HUE, SATURATION, VALUE
-        lower = np.array([70, 20, 20])
+        lower = np.array([120, 20, 20])
 
         # upper HUE, SATURATION, VALUE
         upper = np.array([180, 255, 255])
@@ -43,8 +47,8 @@ class Cropper:
         thresh = cv2.inRange(hsv, lower, upper)
 
         # erode mask to reduce noise
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
-        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
 
         return thresh
 
@@ -60,8 +64,7 @@ class Cropper:
         cnts = sorted(cnts, key=Cropper.contour_sort_fn, reverse=True)
 
         # the biggest one is the whole image, the second-largest one is what we need
-        c = cnts[1]
-        return c
+        return cnts
 
     @staticmethod
     def get_4corners(contour):
@@ -125,16 +128,38 @@ class Cropper:
         (h, w, c) = img.shape
         if w > self.MAX_WIDTH:
             img = imutils.resize(img, width=self.MAX_WIDTH)
-        blurred_img = cv2.blur(img, (5, 5))
+
+        # draw a white border around
+        (h, w, _) = img.shape
+        img = cv2.rectangle(img, (0, 0), (w, h), (255, 255, 255), 4)
+
+        # normalize and apply GaussianBlur
+        img = cv2.normalize(img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+        blurred_img = cv2.GaussianBlur(img, (5, 5), 0)
 
         # threshold images
-        thresh_img = self.preprocess_hsv(blurred_img)
+        # thresh_img = self.preprocess_hsv(blurred_img)
+        thresh_img = self.preprocess_threshold(blurred_img)
+
+        # draw a black border around to concrete the biggest contour is the card
+        thresh_img = cv2.rectangle(thresh_img, (0, 0), (w, h), (0, 0, 0), 8)
+
+        # cv2.imshow("thresh", thresh_img)
 
         # get contour
         contour = self.get_contours(thresh_img)
 
+        # visualize for testing purposes
+        # cp_img = img.copy()
+        # cv2.drawContours(cp_img, contour, 0, (0, 255, 255), 3)
+        # cv2.drawContours(cp_img, contour, 1, (255, 0, 255), 3)
+        # cv2.drawContours(cp_img, contour, 2, (0, 255, 0), 3)
+        # cv2.imshow("contour", cp_img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
         # calculate 4 corner points
-        corner_pts = self.get_4corners(contour)
+        corner_pts = self.get_4corners(contour[0])
 
         # calculate size for output img
         width, height = self.calculate_fit_size(corner_pts)
@@ -164,7 +189,8 @@ def plot_img(img1, img2):
 
 
 if __name__ == '__main__':
-    img_path = "/Volumes/MacDATA/VSCodeWorkSpace/Python/PBL6-attendance-support/image/test_img/fb_img/101180012.jpeg"
+    img_path = "/Volumes/MacDATA/VSCodeWorkSpace/Python/PBL6-attendance-support/image/test_img/nghia_pham.jpg"
+    # img_path = "/Users/trinhdvt/Desktop/102180276.png"
     img = cv2.imread(img_path)
     cropper = Cropper()
     rs = cropper.transform(img)
