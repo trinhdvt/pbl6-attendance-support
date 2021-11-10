@@ -80,6 +80,8 @@ class Detector:
         :return: A dictionary: Key [label] -> Value [PIL Image] or None
         """
 
+        # log_dir = "/Volumes/MacDATA/VSCodeWorkSpace/Python/PBL6-attendance-support/upload/nghiapham"
+
         crop_rs = {
             label: None for label in self.class_names
         }
@@ -89,7 +91,10 @@ class Detector:
                 continue
 
             # adding some padding
-            bbox = list(map(lambda x, y: x + y, padding, bbox))
+            # not padding with class name
+            if label != "class":
+                bbox = list(map(lambda x, y: x + y, padding, bbox))
             crop_rs[label] = img.crop(bbox)
+            # crop_rs[label].save(f"{log_dir}/{label}.png")
 
         return crop_rs

@@ -369,3 +369,5 @@ cython_debug/
 /test/test.py
 /runs/
 /resources/reader_transformer.pth
+resources/.DS_Store
+.DS_Store
