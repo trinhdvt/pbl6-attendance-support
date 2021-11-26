@@ -1,6 +1,4 @@
 requests
-Flask
-flask_cors
 PyYAML
 numpy
 Pillow
@@ -12,3 +10,9 @@ vietocr
 seaborn
 gunicorn
 loguru
+redis
+fastapi[all]
+uvicorn[standard]
+celery
+hiredis
+python-dotenv
