@@ -371,3 +371,5 @@ cython_debug/
 /resources/reader_transformer.pth
 resources/.DS_Store
 .DS_Store
+/resources/nn4.small2.v1.t7
+/resources/res10_300x300.caffemodel
