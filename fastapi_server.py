@@ -28,7 +28,7 @@ if not os.path.exists(log_dir):
 
 # API Definition
 
-@app.post("/api/check", status_code=status.HTTP_202_ACCEPTED)
+@app.post("/api/check/v2", status_code=status.HTTP_202_ACCEPTED)
 async def predict(request: Request,
                   face_img: UploadFile = File(...),
                   card_img: UploadFile = File(...),
@@ -60,7 +60,7 @@ async def predict(request: Request,
     return {"result_id": result_id}
 
 
-@app.post("/api/check/v2", status_code=status.HTTP_202_ACCEPTED)
+@app.post("/api/check", status_code=status.HTTP_202_ACCEPTED)
 async def predict_base64(request: Request,
                          body: Base64Input):
     """
