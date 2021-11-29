@@ -30,7 +30,7 @@ def add_middleware(app: FastAPI) -> None:
     async def max_request_size_middleware(request: Request, call_next):
         #
         MAX_REQUEST_SIZE = int(os.getenv("MAX_REQUEST_SIZE", 1024 * 1024 * 1))
-        content_length = int(request.headers.get('Content-Length'))
+        content_length = int(request.headers.get('Content-Length', 0))
 
         #
         if content_length > MAX_REQUEST_SIZE:
