@@ -3,24 +3,21 @@ from datetime import datetime
 
 from celery.result import AsyncResult
 from fastapi import FastAPI, File, UploadFile, Form, Path, Request, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.app_utils import is_valid_image, request_to_pil, pil_to_base64
 from app.exception import CustomException
 from app.exception_handler import add_exception_handler
+from app.middleware_config import add_middleware
 from app.models import Base64Input
 from celery_task.tasks import submit_task
 
 # APP Setup
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware,
-                   allow_origins=['*'],
-                   allow_credentials=True,
-                   allow_methods=['*'],
-                   allow_headers=['*'])
+add_middleware(app)
 add_exception_handler(app)
+
 log_dir = os.getcwd() + "/upload/"
 if not os.path.exists(log_dir):
     os.mkdir(log_dir)
