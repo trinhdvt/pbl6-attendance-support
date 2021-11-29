@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 
@@ -37,7 +38,7 @@ async def predict(request: Request,
     # validate input
     if not is_valid_image([face_img.content_type, card_img.content_type]):
         raise CustomException(message="Invalid image file",
-                              status_code=status.HTTP_400_BAD_REQUEST)
+                              status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # create task submission
     task_args = {
@@ -97,15 +98,17 @@ async def get_result(result_id: str = Path(...)):
 
     # return error if any exception raised
     if task.failed():
-        result = task.get()
-        return JSONResponse(content=result,
-                            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        try:
+            task.get()
+        except Exception as e:
+            return JSONResponse(content=json.loads(str(e)),
+                                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     # return current task's status
     if not task.ready():
         return JSONResponse(content={
             "status": str(task.status)
-        }, status_code=status.HTTP_102_PROCESSING)
+        }, status_code=status.HTTP_202_ACCEPTED)
 
 
 # HEALTH CHECK API

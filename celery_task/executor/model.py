@@ -8,6 +8,7 @@ import uvloop
 from PIL.Image import Image
 from loguru import logger
 
+from celery_task.task_exception import TaskException
 from celery_task.task_utils import cv2_to_pil, pil_to_cv2, base64_to_pil, save_log_img, submit_results
 from loader import load_model
 
@@ -102,6 +103,11 @@ class Executor:
             logger.debug(f"Retrying to detect missing class {missing_info.keys()}")
             missing_info, extracted_rs = self.detect_card_info(raw_card_img)
 
+            # raise exception if still missing
+            if len(missing_info.keys()) >= 2 or 'id' in missing_info.keys():
+                logger.error("Failed to detect info in card!")
+                raise TaskException("Failed to detect info in card! Please check again!")
+
         # ocr step - image extracted to text
         reader_rs = self.card_reader.batch_predict(extracted_rs.values(), show_time=True)
 
@@ -174,7 +180,11 @@ class Executor:
         except Exception:
             # retry if cannot detect faces from card_img
             logger.warning("Retrying to detect faces from raw_card_img")
-            is_match, distance = self.face_compare.predict([face_img, raw_card_img])
+            try:
+                is_match, distance = self.face_compare.predict([face_img, raw_card_img])
+            except Exception:
+                logger.error("Cannot detect faces")
+                raise TaskException(message="Cannot detect faces")
 
         #
 
