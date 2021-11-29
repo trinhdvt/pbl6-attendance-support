@@ -93,13 +93,22 @@ async def get_result(result_id: str = Path(...)):
     """
 
     task = AsyncResult(result_id)
+    # return result if task has executed successfully
+    if task.successful():
+        result = task.get()
+        return result
+
+    # return error if any exception raised
+    if task.failed():
+        result = task.get()
+        return JSONResponse(content=result,
+                            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    # return current task's status
     if not task.ready():
         return JSONResponse(content={
             "status": str(task.status)
-        }, status_code=status.HTTP_202_ACCEPTED)
-
-    result = task.get()
-    return result
+        }, status_code=status.HTTP_102_PROCESSING)
 
 
 # HEALTH CHECK API
