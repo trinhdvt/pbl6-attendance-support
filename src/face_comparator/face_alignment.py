@@ -1,20 +1,20 @@
+from typing import Union, Iterable
+
 import cv2
 import numpy as np
-from loguru import logger
 from PIL import Image
+from loguru import logger
 
 
 class FaceAlignment:
-    def __init__(self, cfg_path=""):
+    def __init__(self, cfg_path):
         """
         Face Alignment class implemented by OpenCV CascadeClassifier
-
-        :param cfg_path: path to eye_cascade configuration file
         """
 
         self.eye_cascade = cv2.CascadeClassifier(cfg_path)
 
-    def align(self, img):
+    def align(self, img: np.ndarray) -> np.ndarray:
         """
         Align a single face
 
@@ -61,12 +61,12 @@ class FaceAlignment:
             new_img = np.array(new_img.rotate(direction * angle))
 
             return new_img
-        else:
-            logger.debug("Not thing to align! Return the origin")
-            return img
+
+        logger.debug("Not thing to align! Return the origin")
+        return img
 
     @staticmethod
-    def _euclidean_distance(a, b):
+    def _euclidean_distance(a: Iterable, b: Iterable) -> Union[float, np.ndarray]:
         a = np.array(a)
         b = np.array(b)
         return np.linalg.norm(a - b)

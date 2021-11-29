@@ -1,11 +1,12 @@
+import time
 from collections import defaultdict
+from typing import List
 
 import torch
 import yaml
-import time
-
-from vietocr.tool.translate import build_model, translate, process_input
+from PIL.Image import Image
 from loguru import logger
+from vietocr.tool.translate import build_model, translate, process_input
 
 
 class Reader:
@@ -35,7 +36,7 @@ class Reader:
                              self.config['dataset']['image_min_width'],
                              self.config['dataset']['image_max_width'])
 
-    def predict(self, image, show_time=False):
+    def predict(self, image: Image, show_time=False) -> str:
         """
         Transformer single predict
 
@@ -60,7 +61,7 @@ class Reader:
             logger.debug(f'Predicted in {time.time() - start}')
         return sequence
 
-    def batch_predict(self, images, show_time=False):
+    def batch_predict(self, images: List[Image], show_time=False) -> List[str]:
         """
         Transformer batch predict
 
@@ -76,14 +77,14 @@ class Reader:
         batch_pred = {}
         results_seq = [""] * len(images)
 
-        #
+        # create batch
         for i, img in enumerate(images):
             img = self._process_input(img)
 
             batch[img.shape[-1]].append(img)
             batch_idx[img.shape[-1]].append(i)
 
-        #
+        # feedforward then decode
         for k, batch_item in batch.items():
             batch_k = torch.cat(batch_item, 0).to(self.device)
             seq, _ = translate(batch_k, self.model)
@@ -92,7 +93,7 @@ class Reader:
 
             batch_pred[k] = seq
 
-        #
+        # retrieve result
         for k in batch_pred:
             idx = batch_idx[k]
             seq = batch_pred[k]
