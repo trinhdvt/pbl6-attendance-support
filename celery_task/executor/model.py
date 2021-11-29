@@ -1,10 +1,14 @@
 import asyncio
 import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, Union, Tuple, Any
 
+import numpy as np
 import uvloop
+from PIL.Image import Image
 from loguru import logger
 
+from celery_task.task_exception import TaskException
 from celery_task.task_utils import cv2_to_pil, pil_to_cv2, base64_to_pil, save_log_img, submit_results
 from loader import load_model
 
@@ -13,7 +17,7 @@ class Executor:
     def __init__(self):
         self.face_compare, self.card_detector, self.card_reader, self.card_cropper = load_model()
 
-    def process(self, task_kwargs):
+    def process(self, task_kwargs: Dict[str, str]) -> Dict[str, Any]:
         """
         Entry point for processing task
 
@@ -80,7 +84,7 @@ class Executor:
         #
         return extracted_rs
 
-    def extract_info(self, card_img, raw_card_img):
+    def extract_info(self, card_img: Image, raw_card_img: Image) -> Dict[str, Any]:
         """
         Recognize info in student's card
 
@@ -99,12 +103,16 @@ class Executor:
             logger.debug(f"Retrying to detect missing class {missing_info.keys()}")
             missing_info, extracted_rs = self.detect_card_info(raw_card_img)
 
+            # raise exception if still missing
+            if len(missing_info.keys()) >= 2 or 'id' in missing_info.keys():
+                logger.error("Failed to detect info in card!")
+                raise TaskException("Failed to detect info in card! Please check again!")
+
         # ocr step - image extracted to text
         reader_rs = self.card_reader.batch_predict(extracted_rs.values(), show_time=True)
 
         # update extracted text for each label
-        for idx, label in enumerate(extracted_rs.keys()):
-            extracted_rs[label] = reader_rs[idx]
+        extracted_rs = {label: reader_rs[idx] for idx, label in enumerate(extracted_rs.keys())}
 
         # update results with missing info before return
         extracted_rs.update(missing_info)
@@ -113,7 +121,7 @@ class Executor:
         #
         return extracted_rs
 
-    def detect_card_info(self, card_img):
+    def detect_card_info(self, card_img: Image) -> Tuple[Dict[str, None], Dict[str, Image]]:
         """
         Detect info bounding_box in student's card and crop it into PIL image
 
@@ -135,7 +143,7 @@ class Executor:
 
         return missing_info, extracted_rs
 
-    def crop_card(self, img, to_cv2=True):
+    def crop_card(self, img: Union[np.ndarray, Image], to_cv2=True) -> np.ndarray:
         """
         Crop student's card from input image
 
@@ -153,7 +161,8 @@ class Executor:
 
         return cropped_img
 
-    def compare_faces(self, face_img, cropped_card_img, raw_card_img):
+    def compare_faces(self, face_img: np.ndarray, cropped_card_img: np.ndarray, raw_card_img: np.ndarray) \
+            -> Dict[str, Union[bool, float]]:
         """
         Compare two faces in two images
 
@@ -171,7 +180,11 @@ class Executor:
         except Exception:
             # retry if cannot detect faces from card_img
             logger.warning("Retrying to detect faces from raw_card_img")
-            is_match, distance = self.face_compare.predict([face_img, raw_card_img])
+            try:
+                is_match, distance = self.face_compare.predict([face_img, raw_card_img])
+            except Exception:
+                logger.error("Cannot detect faces")
+                raise TaskException(message="Cannot detect faces")
 
         #
 

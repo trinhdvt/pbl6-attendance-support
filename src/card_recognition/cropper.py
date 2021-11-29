@@ -1,12 +1,13 @@
+from typing import Tuple
+
 import cv2
 import imutils
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class Cropper:
     """
-    Cắt vùng thẻ sinh viên ra khỏi background ảnh đầu vào
+    Cut student's card from input image.
     """
 
     def __init__(self, MAX_WIDTH=760):
@@ -58,16 +59,16 @@ class Cropper:
         contours = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # grab contours
-        cnts = imutils.grab_contours(contours)
+        contours = imutils.grab_contours(contours)
 
         # sort contours by sort function
-        cnts = sorted(cnts, key=Cropper.contour_sort_fn, reverse=True)
+        contours = sorted(contours, key=Cropper.contour_sort_fn, reverse=True)
 
         # the biggest one is the whole image, the second-largest one is what we need
-        return cnts
+        return contours
 
     @staticmethod
-    def get_4corners(contour):
+    def get_4corners(contour) -> np.ndarray:
         # calculate arc length of selected contour
         peri = cv2.arcLength(contour, True)
 
@@ -95,12 +96,12 @@ class Cropper:
         return corner_point
 
     @staticmethod
-    def calculate_fit_size(corner_pts):
+    def calculate_fit_size(corner_pts) -> Tuple[int, int]:
         """
-        Tính size của ảnh sau khi cắt ra
+        Calculate the size of the image that will be fitted into the card.
 
-        :param corner_pts: Toạ độ 4 góc
-        :return: Size tương ứng
+        :param corner_pts: Four corner points of the card.
+        :return: (width, height)
         """
 
         (tl, tr, br, bl) = corner_pts
@@ -118,13 +119,15 @@ class Cropper:
         #
         return new_width, new_height
 
-    def transform(self, origin_img):
+    def transform(self, origin_img: np.ndarray) -> np.ndarray:
         """
-        :param origin_img: Ảnh đầu vào được đọc bằng opencv
-        :return: ảnh chỉ chứa thẻ sinh viên
+        Cut then transform student's card from input image.
+
+        :param origin_img: OpenCV image.
+        :return: Student's card only.
         """
 
-        img = origin_img.copy()
+        img = np.copy(origin_img)
         (h, w, c) = img.shape
         if w > self.MAX_WIDTH:
             img = imutils.resize(img, width=self.MAX_WIDTH)
@@ -171,27 +174,3 @@ class Cropper:
 
         #
         return transformed_img
-
-
-def plot_img(img1, img2):
-    img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 10))
-
-    ax1.imshow(img1)
-    ax1.set_title("Origin image")
-
-    ax2.imshow(img2)
-    ax2.set_title("Crop and center aligned")
-
-    plt.show()
-
-
-if __name__ == '__main__':
-    img_path = "/Volumes/MacDATA/VSCodeWorkSpace/Python/PBL6-attendance-support/image/test_img/nghia_pham.jpg"
-    # img_path = "/Users/trinhdvt/Desktop/102180276.png"
-    img = cv2.imread(img_path)
-    cropper = Cropper()
-    rs = cropper.transform(img)
-    plot_img(img, rs)

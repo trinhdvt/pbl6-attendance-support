@@ -1,6 +1,7 @@
 import os
 from base64 import b64decode, b64encode
 from io import BytesIO
+from typing import Dict, Optional, List, Union, Any
 
 import cv2
 import numpy as np
@@ -9,25 +10,25 @@ from PIL import Image
 from loguru import logger
 
 
-def pil_to_cv2(img):
+def pil_to_cv2(img: Union[Image.Image, Any]) -> np.ndarray:
     return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
 
-def cv2_to_pil(img) -> Image.Image:
+def cv2_to_pil(img: np.ndarray) -> Image.Image:
     return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
 
-def pil_to_base64(pil_img) -> str:
+def pil_to_base64(pil_img: Image.Image) -> str:
     buffer = BytesIO()
     pil_img.save(buffer, format="JPEG")
     return b64encode(buffer.getvalue()).decode('utf-8')
 
 
-def base64_to_pil(base64_str) -> Image.Image:
+def base64_to_pil(base64_str: str) -> Image.Image:
     return Image.open(BytesIO(b64decode(base64_str)))
 
 
-async def submit_results(extracted_rs):
+async def submit_results(extracted_rs: Dict[str, Optional[str]]):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     default_url = "http://illusion.codes:9999/api/records"
     submit_url = os.getenv("BE_SERVER", default=default_url)
@@ -55,12 +56,14 @@ async def submit_results(extracted_rs):
         logger.debug(f"Submit failed: {str(e)}")
 
 
-async def save_log_img(img_list, filename, save_dir):
-    assert len(img_list) == len(filename)
+async def save_log_img(img_list: List[np.ndarray], filename: List[str], save_dir: str):
+    if len(img_list) != len(filename):
+        logger.error(f"img_list and filename length not equal: {len(img_list)} vs {len(filename)}")
+        return
 
     for img, path in zip(img_list, filename):
         await save_img(img, save_dir + path)
 
 
-async def save_img(img, out_path):
+async def save_img(img: np.ndarray, out_path: str):
     cv2_to_pil(img).save(out_path, quality=85)

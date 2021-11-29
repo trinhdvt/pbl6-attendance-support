@@ -1,4 +1,7 @@
+from typing import Dict, List, Optional
+
 import torch
+from PIL.Image import Image
 
 
 class Detector:
@@ -9,11 +12,11 @@ class Detector:
         self.size = size
         self.class_names = self.model.model.names
 
-    def detect_crop(self, image, save_file=False, verbose=False):
+    def detect_crop(self, image: Image, save_file=False, verbose=False) -> Dict[str, Optional[Image]]:
         """
         Detect and crop information from image then save to a dict
 
-        :param save_file: Directory to save detect image
+        :param save_file: True to save detect image
         :param image: PIL Image
         :param verbose: True to show processing time
         :return: Dictionary with key is the class's name and value is the cropped image
@@ -34,7 +37,7 @@ class Detector:
         # crop image for each class
         return self.crop(image, bounding_box)
 
-    def get_bounding_box(self, detect_rs, img):
+    def get_bounding_box(self, detect_rs, img: Image) -> Dict[str, Optional[List[int]]]:
         """
         Get bounding box for each class from detected results
 
@@ -71,7 +74,7 @@ class Detector:
 
         return bounding_box
 
-    def crop(self, img, bounding_box):
+    def crop(self, img: Image, bounding_box: Dict[str, List[int]]) -> Dict[str, Optional[Image]]:
         """
         Crop image for each class
 
@@ -79,8 +82,6 @@ class Detector:
         :param bounding_box: Bounding box of each class
         :return: A dictionary: Key [label] -> Value [PIL Image] or None
         """
-
-        # log_dir = "/Volumes/MacDATA/VSCodeWorkSpace/Python/PBL6-attendance-support/upload/nghiapham"
 
         crop_rs = {
             label: None for label in self.class_names
