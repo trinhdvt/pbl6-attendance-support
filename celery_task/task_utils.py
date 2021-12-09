@@ -50,9 +50,9 @@ async def submit_results(extracted_rs: Dict[str, Optional[str]]):
         'cropCard': extracted_rs['cropCard']
     }
     try:
-        r = requests.post(submit_url, headers=headers, data=data, timeout=5)
+        r = requests.post(f"{submit_url}/api/records", headers=headers, data=data, timeout=5)
         if r.status_code != 200:
-            logger.error(f"Submit result failed: {r.status_code}")
+            logger.error(f"Submit result failed: {r.content}")
     except requests.exceptions.RequestException as e:
         logger.debug(f"Submit failed: {str(e)}")
 
