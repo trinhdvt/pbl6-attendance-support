@@ -15,7 +15,7 @@ def pil_to_cv2(img: Union[Image.Image, Any]) -> np.ndarray:
 
 
 def cv2_to_pil(img: np.ndarray) -> Image.Image:
-    return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).convert('RGB')
 
 
 def pil_to_base64(pil_img: Image.Image) -> str:
@@ -25,7 +25,7 @@ def pil_to_base64(pil_img: Image.Image) -> str:
 
 
 def base64_to_pil(base64_str: str) -> Image.Image:
-    return Image.open(BytesIO(b64decode(base64_str)))
+    return Image.open(BytesIO(b64decode(base64_str))).convert('RGB')
 
 
 async def submit_results(extracted_rs: Dict[str, Optional[str]]):
