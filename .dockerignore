@@ -9,3 +9,4 @@ resources/nn4.small2.v1.t7
 admin-fe
 user-fe
 .run
+/.env

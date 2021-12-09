@@ -8,9 +8,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: trinhvideo123/pbl6-attendance-sp:v2-celery
+    image: trinhvideo123/pbl6-attendance-sp:v2
     ports:
-      - "8888:8888"
+      - "127.0.0.1:8888:8888"
     restart: always
     networks:
       AI_WORKER_BACKEND:
@@ -19,10 +19,7 @@ services:
 
   # celery worker
   worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: trinhvideo123/pbl6-attendance-sp:v2-celery
+    image: trinhvideo123/pbl6-attendance-sp:v2
     command: celery -A celery_task.worker worker -l info -c 1 --max-tasks-per-child 100 --max-memory-per-child 1000000 -O fair --without-gossip --without-mingle --without-heartbeat
     deploy:
       replicas: 1
@@ -37,9 +34,9 @@ services:
 
   # backend server
   backend:
-    image: trinhvideo123/pbl6-backend:node
+    image: trinhvideo123/pbl6-attendance-sp:backend
     ports:
-      - "9999:8080"
+      - "127.0.0.1:9999:8080"
     restart: unless-stopped
     networks:
       AI_WORKER_BACKEND:
