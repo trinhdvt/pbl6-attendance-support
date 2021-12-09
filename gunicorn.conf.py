@@ -1,12 +1,9 @@
 import multiprocessing
 import os
 
+from dotenv import load_dotenv
 
-def on_starting(server):
-    from dotenv import load_dotenv
-
-    load_dotenv()
-
+load_dotenv()
 
 bind = f"0.0.0.0:{os.getenv('PORT', '8080')}"
 workers = multiprocessing.cpu_count() * 2 if os.getenv("ENV") == "DEPLOY" else 1

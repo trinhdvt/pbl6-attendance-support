@@ -8,13 +8,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: trinhvideo123/pbl6-attendance-sp:v2-celery
+    image: trinhvideo123/pbl6-attendance-sp:v2
     ports:
-      - "8888:8888"
-    environment:
-      - WORKER_CLASS=uvicorn.workers.UvicornWorker
-      - PORT=8888
-      - ENV=DEPLOY
+      - "127.0.0.1:8888:8888"
     restart: always
     networks:
       AI_WORKER_BACKEND:
@@ -22,18 +18,11 @@ services:
           - AI_BACKEND
 
   # celery worker
-  celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: trinhvideo123/pbl6-attendance-sp:v2-celery
-    command: celery -A celery_task.worker worker -l info -c 1 -O fair --without-gossip --without-mingle --without-heartbeat
-    environment:
-      - OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
-      #      - BE_SERVER=http://illusion.codes:9999/api/records
-      - BE_SERVER=http://DATA_BACKEND:8080/api/records
+  worker:
+    image: trinhvideo123/pbl6-attendance-sp:v2
+    command: celery -A celery_task.worker worker -l info -c 1 --max-tasks-per-child 100 --max-memory-per-child 1000000 -O fair --without-gossip --without-mingle --without-heartbeat
     deploy:
-      replicas: 2
+      replicas: 1
     volumes:
       - /home/pbl6/images:/app/upload
       - /home/pbl6/models:/app/resources
@@ -45,9 +34,9 @@ services:
 
   # backend server
   backend:
-    image: trinhvideo123/pbl6-backend:node
+    image: trinhvideo123/pbl6-attendance-sp:backend
     ports:
-      - "9999:8080"
+      - "127.0.0.1:9999:8080"
     restart: unless-stopped
     networks:
       AI_WORKER_BACKEND:

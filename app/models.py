@@ -1,3 +1,5 @@
+from typing import Optional
+from datetime import datetime
 from fastapi import status
 from pydantic import BaseModel, validator
 
@@ -9,6 +11,7 @@ class Base64Input(BaseModel):
     examCode: str
     face_img: str
     card_img: str
+    checkAt: Optional[str] = str(datetime.today())
 
     @validator('face_img', 'card_img')
     def base64_image_check(cls, v: str):
@@ -16,7 +19,7 @@ class Base64Input(BaseModel):
         support_type = ["image/jpeg", "image/png"]
         prefix = tuple(f"data:{_};base64," for _ in support_type)
         if not v.startswith(prefix):
-            raise CustomException(message='Parameter must be JPEG or PNG image',
+            raise CustomException(message='Định dạng ảnh phải là JPEG hoặc PNG',
                                   status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
         # valid base64 image check
@@ -24,8 +27,8 @@ class Base64Input(BaseModel):
         try:
             base64_to_pil(image_data)
         except:
-            raise CustomException(message="Parameter must be base64 image",
-                                  status_code=status.HTTP_400_BAD_REQUEST)
+            raise CustomException(message="Định dạng ảnh phải là JPEG hoặc PNG",
+                                  status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
         # return without base64 prefix
         return image_data
