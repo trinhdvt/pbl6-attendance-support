@@ -11,6 +11,8 @@ RUN pip3 install -r requirements.txt --upgrade --no-cache-dir \
 
 COPY . .
 
+COPY deploy.env .env
+
 ENV TZ=Asia/Ho_Chi_Minh
 
 CMD ["gunicorn"]
