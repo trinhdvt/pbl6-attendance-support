@@ -48,7 +48,7 @@ async def predict(request: Request,
         'card-fn': card_img.filename,
         "exam_code": examCode,
         'check_at': None,
-        "remote_addr": request.client.host,
+        "remote_addr": request.headers.get('X-Real-IP', request.client.host),
         "user_agent": request.headers.get('User-Agent'),
         "log_dir": log_dir
     }
@@ -75,7 +75,7 @@ async def predict_base64(request: Request,
         'card-fn': f"{log_prefix}_{body.examCode}_card.jpg",
         "exam_code": body.examCode,
         'check_at': body.checkAt,
-        "remote_addr": request.client.host,
+        "remote_addr": request.headers.get('X-Real-IP', request.client.host),
         "user_agent": request.headers.get('User-Agent'),
         "log_dir": log_dir
     }
