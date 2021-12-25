@@ -373,3 +373,7 @@ resources/.DS_Store
 .DS_Store
 /resources/nn4.small2.v1.t7
 /resources/res10_300x300.caffemodel
+/.run/
+/user-fe/node_modules/
+/user-fe/.idea/
+/deploy.env

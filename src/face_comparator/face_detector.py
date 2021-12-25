@@ -1,25 +1,28 @@
+from typing import List, Tuple
+
 import cv2
 import numpy as np
 
 
 class FaceDetector:
     def __init__(self, cfg_path, weight_path, confidence_thresh=0.5):
-
         self.detector = cv2.dnn.readNetFromCaffe(cfg_path, weight_path)
         self.confidence_thresh = confidence_thresh
 
     @staticmethod
-    def _batch_blob(images, size, scale_factor=1.0, mean=(0, 0, 0)):
+    def _batch_blob(images: List[np.ndarray],
+                    size: Tuple[int, int],
+                    mean=(104.0, 177.0, 123.0)) -> np.ndarray:
         blobs = cv2.dnn.blobFromImages(images,
                                        size=size,
-                                       scalefactor=scale_factor,
+                                       scalefactor=1.0,
                                        mean=mean,
                                        swapRB=False,
                                        crop=False)
 
         return blobs
 
-    def batch_detect(self, images):
+    def batch_detect(self, images: List[np.ndarray]) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         """
         Detect faces in all input images.
 
@@ -53,8 +56,6 @@ class FaceDetector:
 
             # take the score for visualize
             cf_score = img_detect_rs[max_cf_idx, 2]
-            label = f"{cf_score * 100:.2f}"
-            y = start_y - 10 if start_y > 20 else start_y + 10
 
             if cf_score < self.confidence_thresh:
                 continue
@@ -63,8 +64,10 @@ class FaceDetector:
             face = current_img[start_y:end_y, start_x:end_x]
             cropped_face.append(np.copy(face))
 
-            # draw result
-            # cv2.rectangle(images[img_idx], (start_x, start_y), (end_x, end_y), (0, 0, 255), 2)
-            # cv2.putText(images[img_idx], label, (start_x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+            # draw result (scale border before draw)
+            start_x, start_y = map(lambda x: max(0, x - 10), (start_x, start_y))
+            end_x = min(w, end_x + 10)
+            end_y = min(h, end_y + 10)
+            cv2.rectangle(images[img_idx], (start_x, start_y), (end_x, end_y), (0, 0, 255), 1)
 
         return images, cropped_face

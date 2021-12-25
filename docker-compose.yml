@@ -5,49 +5,59 @@ services:
 
   # AI server
   AI_backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: trinhvideo123/pbl6-attendance-sp:v2-celery
-    ports:
-      - "8888:8888"
+    image: trinhvideo123/pbl6-attendance-sp:v3
     environment:
-      - WORKER_CLASS=uvicorn.workers.UvicornWorker
       - PORT=8888
       - ENV=DEPLOY
-    restart: always
+      - WORKER_CLASS=uvicorn.workers.UvicornWorker
+      - MAX_REQUEST_SIZE=6291456
+    ports:
+      - "127.0.0.1:8888:8888"
+    restart: unless-stopped
+    healthcheck:
+      test: curl localhost:8888/api/health
+      interval: 60s
+      timeout: 3s
+      retries: 3
     networks:
       AI_WORKER_BACKEND:
         aliases:
           - AI_BACKEND
 
   # celery worker
-  celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: trinhvideo123/pbl6-attendance-sp:v2-celery
-    command: celery -A celery_task.worker worker -l info -c 1 -O fair --without-gossip --without-mingle --without-heartbeat
-    environment:
-      - OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
-      #      - BE_SERVER=http://illusion.codes:9999/api/records
-      - BE_SERVER=http://DATA_BACKEND:8080/api/records
+  worker:
+    image: trinhvideo123/pbl6-attendance-sp:v3
+    command: celery -A celery_task.worker worker -l info -c 1 --max-tasks-per-child 100 -O fair --without-gossip --without-mingle --without-heartbeat
     deploy:
-      replicas: 2
-    volumes:
-      - /home/pbl6/images:/app/upload
-      - /home/pbl6/models:/app/resources
-    restart: always
+      replicas: 1
+    environment:
+      - BROKER_URI=redis://redis/
+      - BACKEND_URI=redis://redis/
+      - RESULT_EXPIRE=300
+      - OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+      - FACE_THRESH=0.55
+    restart: unless-stopped
+    depends_on:
+      - redis
     networks:
       AI_WORKER_BACKEND:
         aliases:
           - WORKER
 
+  # redis as message broker
+  redis:
+    image: redis:alpine
+    networks:
+      AI_WORKER_BACKEND:
+        aliases:
+          - REDIS
+
+
   # backend server
   backend:
-    image: trinhvideo123/pbl6-backend:node
+    image: trinhvideo123/pbl6-attendance-sp:backend
     ports:
-      - "9999:8080"
+      - "127.0.0.1:9999:8080"
     restart: unless-stopped
     networks:
       AI_WORKER_BACKEND:

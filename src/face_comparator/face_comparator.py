@@ -1,6 +1,8 @@
+import os
+from typing import List, Tuple
+
 import face_recognition as fr
 import numpy as np
-import os
 
 from .face_alignment import FaceAlignment
 from .face_detector import FaceDetector
@@ -18,11 +20,9 @@ class FaceComparator:
 
         self.face_embedding = FaceEmbedding(weight_path=embedding_weight)
 
-        self.threshold = os.getenv("FACE_THRESH", default=0.6)
-        if type(self.threshold) != float:
-            self.threshold = float(self.threshold)
+        self.threshold = float(os.getenv("FACE_THRESH", default=0.6))
 
-    def predict(self, images):
+    def predict(self, images: List[np.ndarray]) -> Tuple[bool, float]:
         """
         Compare face function
 
@@ -31,18 +31,16 @@ class FaceComparator:
         """
 
         # detect face
-        annotated_img, cropped_face = self.face_detector.batch_detect(images)
+        _, cropped_face = self.face_detector.batch_detect(images)
 
         # align face
-        for i in range(len(cropped_face)):
-            cropped_face[i] = self.face_alignment.align(cropped_face[i])
+        for i, face in enumerate(cropped_face):
+            cropped_face[i] = self.face_alignment.align(face)
 
         #
-        is_match, distance = self._compare(cropped_face)
+        return self._compare(cropped_face)
 
-        return np.array(is_match, dtype=bool).tolist()[0], distance.tolist()[0]
-
-    def _compare(self, face_images):
+    def _compare(self, face_images: List[np.ndarray]) -> Tuple[bool, float]:
         # encoding face
         embedding = []
         for face in face_images:
@@ -57,6 +55,6 @@ class FaceComparator:
         distance = fr.face_distance([embedding[0]], embedding[1])
 
         # if distance < 0.6 then it's match otherwise no
-        is_match = fr.compare_faces([embedding[0]], embedding[1], tolerance=self.threshold)
+        is_match = (distance <= self.threshold).tolist()[0]
 
-        return is_match, distance
+        return is_match, distance.tolist()[0]
