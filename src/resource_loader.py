@@ -1,11 +1,13 @@
-from src.face_comparator import FaceComparator
-from src.card_recognition import Detector, Reader, Cropper
-from src.utils.google_utils import download_model
+import os
+from pathlib import Path
+
 from loguru import logger
 
-import os
+from src.card_recognition import Detector, Reader, Cropper
+from src.face_comparator import FaceComparator
+from src.utils import download_model
 
-ROOT_PATH = os.path.dirname(__file__)
+ROOT_PATH = Path().resolve().parent.absolute()
 
 Cfg = {
     'face': {
@@ -66,8 +68,11 @@ def model_check():
                 weight_path = model['weight']
                 #
                 if not os.path.isfile(weight_path):
-                    assert 'drive-id' in model.keys(), "Not found google drive id"
-                    drive_id = model['drive-id']
-                    download_model(drive_id, weight_path)
+                    try:
+                        drive_id = model['drive-id']
+                        download_model(drive_id, weight_path)
+                    except Exception as e:
+                        logger.error(str(e))
+                        raise e
 
     logger.info("Model check done!")
