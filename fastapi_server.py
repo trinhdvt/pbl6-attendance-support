@@ -1,9 +1,8 @@
 import json
 import os
-from datetime import datetime
 
 from celery.result import AsyncResult
-from fastapi import FastAPI, File, UploadFile, Form, Path, Request, status
+from fastapi import FastAPI, File, UploadFile, Path, status
 from fastapi.responses import JSONResponse
 
 from app.app_utils import is_valid_image, request_to_pil, pil_to_base64
@@ -27,12 +26,10 @@ if not os.path.exists(log_dir):
 # API Definition
 
 @app.post("/api/check/v2", status_code=status.HTTP_202_ACCEPTED)
-async def predict(request: Request,
-                  face_img: UploadFile = File(...),
-                  card_img: UploadFile = File(...),
-                  examCode: str = Form(...)):
+async def predict(face_img: UploadFile = File(...),
+                  card_img: UploadFile = File(...)):
     """
-    Create a celery task then return task_id to client in order to fetch result later
+    Attendance check API with file upload
     """
 
     # validate input
@@ -44,13 +41,6 @@ async def predict(request: Request,
     task_args = {
         'face-img-b64': pil_to_base64(request_to_pil(await face_img.read())),
         'card-img-b64': pil_to_base64(request_to_pil(await card_img.read())),
-        'face-fn': face_img.filename,
-        'card-fn': card_img.filename,
-        "exam_code": examCode,
-        'check_at': None,
-        "remote_addr": request.headers.get('X-Real-IP', request.client.host),
-        "user_agent": request.headers.get('User-Agent'),
-        "log_dir": log_dir
     }
 
     # insert celery queue
@@ -60,24 +50,15 @@ async def predict(request: Request,
 
 
 @app.post("/api/check", status_code=status.HTTP_202_ACCEPTED)
-async def predict_base64(request: Request,
-                         body: Base64Input):
+async def predict_base64(body: Base64Input):
     """
-    API when submit with base64 image
+    Attendance check API with base64 image
     """
 
     # create task submission
-    log_prefix = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
     task_args = {
         'face-img-b64': body.face_img,
         'card-img-b64': body.card_img,
-        'face-fn': f"{log_prefix}_{body.examCode}_face.jpg",
-        'card-fn': f"{log_prefix}_{body.examCode}_card.jpg",
-        "exam_code": body.examCode,
-        'check_at': body.checkAt,
-        "remote_addr": request.headers.get('X-Real-IP', request.client.host),
-        "user_agent": request.headers.get('User-Agent'),
-        "log_dir": log_dir
     }
 
     # insert to celery queue
@@ -118,9 +99,4 @@ async def get_result(result_id: str = Path(...)):
 
 @app.get("/api/health", status_code=200)
 async def health_check():
-    return {"status": "OK"}
-
-
-@app.post("/api/health/v1", status_code=200)
-async def base64_img_test(body: Base64Input):
     return {"status": "OK"}

@@ -13,13 +13,10 @@ class Reader:
     def __init__(self, cfg_path, weight_path):
         config = self.load_config(cfg_path)
         device = config['device']
-
         #
         model, vocab = build_model(config)
-
         #
         model.load_state_dict(torch.load(weight_path, map_location=torch.device(device)))
-
         #
         self.config = config
         self.model = model
@@ -61,15 +58,13 @@ class Reader:
             logger.debug(f'Predicted in {time.time() - start}')
         return sequence
 
-    def batch_predict(self, images: List[Image], show_time=False) -> List[str]:
+    def batch_predict(self, images: List[Image]) -> List[str]:
         """
         Transformer batch predict
 
         :param images: List of PIL images to predicted
-        :param show_time: True to show predicted time
         :return: List of predicted result in string format
         """
-        start = time.time()
 
         #
         batch = defaultdict(list)
@@ -99,10 +94,5 @@ class Reader:
             seq = batch_pred[k]
             for i, j in enumerate(idx):
                 results_seq[j] = seq[i]
-
-        #
-        if show_time:
-            logger.debug(f'Predicted in {time.time() - start}')
-
         #
         return results_seq

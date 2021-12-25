@@ -1,12 +1,9 @@
 .idea
-label_data
 image
 runs
 resources/reader_transformer.pth
 resources/yolov5_300.pt
 resources/res10_300x300.caffemodel
 resources/nn4.small2.v1.t7
-admin-fe
-user-fe
 .run
 /.env

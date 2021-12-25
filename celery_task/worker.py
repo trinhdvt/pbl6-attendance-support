@@ -31,5 +31,4 @@ app.conf.update({
     'task_acks_late': True
 })
 
-if os.getenv("ENV") != "DEPLOY":
-    app.control.purge()
+app.control.purge()

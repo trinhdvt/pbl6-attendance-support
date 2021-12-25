@@ -5,13 +5,20 @@ services:
 
   # AI server
   AI_backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: trinhvideo123/pbl6-attendance-sp:v2
+    image: trinhvideo123/pbl6-attendance-sp:v3
+    environment:
+      - PORT=8888
+      - ENV=DEPLOY
+      - WORKER_CLASS=uvicorn.workers.UvicornWorker
+      - MAX_REQUEST_SIZE=6291456
     ports:
       - "127.0.0.1:8888:8888"
-    restart: always
+    restart: unless-stopped
+    healthcheck:
+      test: curl localhost:8888/api/health
+      interval: 60s
+      timeout: 3s
+      retries: 3
     networks:
       AI_WORKER_BACKEND:
         aliases:
@@ -19,18 +26,32 @@ services:
 
   # celery worker
   worker:
-    image: trinhvideo123/pbl6-attendance-sp:v2
-    command: celery -A celery_task.worker worker -l info -c 1 --max-tasks-per-child 100 --max-memory-per-child 1000000 -O fair --without-gossip --without-mingle --without-heartbeat
+    image: trinhvideo123/pbl6-attendance-sp:v3
+    command: celery -A celery_task.worker worker -l info -c 1 --max-tasks-per-child 100 -O fair --without-gossip --without-mingle --without-heartbeat
     deploy:
       replicas: 1
-    volumes:
-      - /home/pbl6/images:/app/upload
-      - /home/pbl6/models:/app/resources
-    restart: always
+    environment:
+      - BROKER_URI=redis://redis/
+      - BACKEND_URI=redis://redis/
+      - RESULT_EXPIRE=300
+      - OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+      - FACE_THRESH=0.55
+    restart: unless-stopped
+    depends_on:
+      - redis
     networks:
       AI_WORKER_BACKEND:
         aliases:
           - WORKER
+
+  # redis as message broker
+  redis:
+    image: redis:alpine
+    networks:
+      AI_WORKER_BACKEND:
+        aliases:
+          - REDIS
+
 
   # backend server
   backend:

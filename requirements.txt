@@ -3,15 +3,13 @@ PyYAML
 numpy
 Pillow
 imutils
-matplotlib
 gdown
 vietocr
 seaborn
 gunicorn
 loguru
-redis
 fastapi[all]
 uvicorn[standard]
-celery
+celery[redis]
 hiredis
 python-dotenv
