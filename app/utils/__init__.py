@@ -4,7 +4,7 @@ from typing import List
 
 from PIL import Image
 
-from .exception import CustomException
+from app.exception import CustomException
 
 
 def is_valid_image(file_type: List[str]) -> bool:

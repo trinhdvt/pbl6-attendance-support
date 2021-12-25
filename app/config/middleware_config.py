@@ -4,7 +4,7 @@ from fastapi import FastAPI, status
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
-from .exception import CustomException
+from app.exception import CustomException
 
 
 def add_middleware(app: FastAPI) -> None:

@@ -1,8 +1,8 @@
 from fastapi import status
 from pydantic import BaseModel, validator
 
-from .app_utils import base64_to_pil
-from .exception import CustomException
+from app.exception import CustomException
+from app.utils import base64_to_pil
 
 
 class Base64Input(BaseModel):

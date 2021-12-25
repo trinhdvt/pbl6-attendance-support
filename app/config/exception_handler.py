@@ -2,7 +2,7 @@ from fastapi import FastAPI, status
 from fastapi.exceptions import RequestValidationError, FastAPIError
 from fastapi.responses import JSONResponse
 
-from .exception import CustomException
+from app.exception import CustomException
 
 
 def add_exception_handler(app: FastAPI) -> None:

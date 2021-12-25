@@ -8,7 +8,7 @@ load_dotenv()
 bind = f"0.0.0.0:{os.getenv('PORT', '8080')}"
 workers = multiprocessing.cpu_count() * 2 if os.getenv("ENV") == "DEPLOY" else 1
 timeout = 90
-wsgi_app = "fastapi_server:app"
+wsgi_app = "app.fastapi_server:app"
 loglevel = "info"
 capture_output = False
 worker_class = os.getenv("WORKER_CLASS", "uvicorn.workers.UvicornWorker")

@@ -12,9 +12,9 @@ app = Celery(
     'celery_app',
     broker=BROKER_URI,
     backend=BACKEND_URI,
-    include=['celery_task.tasks',
-             'celery_task.task_exception',
-             'celery_task.task_utils',
+    include=['celery_task.task',
+             'celery_task.task.task_exception',
+             'celery_task.task.task_utils',
              'loader']
 )
 

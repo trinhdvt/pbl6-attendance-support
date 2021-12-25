@@ -5,7 +5,7 @@ from celery import Task
 from celery.exceptions import Ignore
 
 from .task_exception import TaskException
-from .worker import app
+from ..worker import app
 
 
 class PredictTask(Task, ABC):
@@ -32,7 +32,7 @@ class PredictTask(Task, ABC):
           base=PredictTask,
           bind=True,
           name="predict_task",
-          path=("celery_task.executor.model", "Executor"))
+          path=("celery_task.executor", "Executor"))
 def submit_task(self, data):
     """
     Submit task to celery
