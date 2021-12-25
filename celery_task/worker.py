@@ -13,6 +13,7 @@ app = Celery(
     broker=BROKER_URI,
     backend=BACKEND_URI,
     include=['celery_task.tasks',
+             'celery_task.task_exception',
              'celery_task.task_utils',
              'loader']
 )
@@ -29,3 +30,5 @@ app.conf.update({
     'task_reject_on_worker_lost': True,
     'task_acks_late': True
 })
+
+app.control.purge()

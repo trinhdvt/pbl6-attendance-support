@@ -27,4 +27,4 @@ def pil_to_base64(pil_img: Image.Image) -> str:
 
 
 def base64_to_pil(base64_str: str) -> Image.Image:
-    return Image.open(BytesIO(b64decode(base64_str)))
+    return Image.open(BytesIO(b64decode(base64_str))).convert('RGB')

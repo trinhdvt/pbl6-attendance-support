@@ -2,7 +2,9 @@ import importlib
 from abc import ABC
 
 from celery import Task
+from celery.exceptions import Ignore
 
+from .task_exception import TaskException
 from .worker import app
 
 
@@ -35,4 +37,11 @@ def submit_task(self, data):
     """
     Submit task to celery
     """
-    return self.model.process(data)
+    try:
+        return self.model.process(data)
+    except TaskException as e:
+        self.update_state(state="FAILURE", meta={
+            "exc_type": type(e).__name__,
+            'exc_message': str(e),
+        })
+        raise Ignore()

@@ -1,3 +1,5 @@
+from typing import List
+
 import cv2
 import numpy as np
 
@@ -7,7 +9,7 @@ class FaceEmbedding:
         self.encoder = cv2.dnn.readNetFromTorch(weight_path)
 
     @staticmethod
-    def _pre_process(images):
+    def _pre_process(images: List[np.ndarray]) -> np.ndarray:
         blob = cv2.dnn.blobFromImages(images,
                                       size=(96, 96),
                                       scalefactor=1.0 / 255,
@@ -16,13 +18,14 @@ class FaceEmbedding:
                                       crop=False)
         return blob
 
-    def embedding(self, images):
+    def embedding(self, images: List[np.ndarray]) -> np.ndarray:
         """
         Calculate embedding for list of images.
 
         :param images: List of OpenCV images
         :return: list of embedding vectors for each image
         """
+
         # preprocess
         blob_img = self._pre_process(images)  # shape Nx3x96x96
 
