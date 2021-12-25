@@ -81,5 +81,4 @@ async def get_backup_image(student_id: str) -> Optional[Image.Image]:
     response = requests.get(img_url, stream=True)
     if response.status_code == 200:
         return Image.open(response.raw).convert('RGB')
-    else:
-        return None
+    return None
