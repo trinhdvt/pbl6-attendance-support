@@ -8,7 +8,7 @@ from PIL.Image import Image
 
 from celery_task.task.task_exception import TaskException
 from celery_task.task.task_utils import pil_to_base64, cv2_to_pil, pil_to_cv2, base64_to_pil
-from loader import load_model
+from src.resource_loader import load_model
 
 
 class Executor:

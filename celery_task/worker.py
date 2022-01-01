@@ -15,7 +15,7 @@ app = Celery(
     include=['celery_task.task',
              'celery_task.task.task_exception',
              'celery_task.task.task_utils',
-             'loader']
+             'src.resource_loader']
 )
 
 app.conf.update({
